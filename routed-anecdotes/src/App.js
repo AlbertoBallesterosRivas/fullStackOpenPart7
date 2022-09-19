@@ -5,9 +5,11 @@ import {
   Route,
   Link,
   useParams,
+  useNavigate,
+  useLocation,
 } from "react-router-dom";
 
-const Menu = ({ anecdotes }) => {
+const Menu = ({ anecdotes, addNew }) => {
   const padding = {
     paddingRight: 5,
   };
@@ -25,7 +27,7 @@ const Menu = ({ anecdotes }) => {
 
       <Routes>
         <Route path="/" element={<AnecdoteList anecdotes={anecdotes} />} />
-        <Route path="/create" element={<CreateNew />} />
+        <Route path="/create" element={<CreateNew addNew={addNew} />} />
         <Route path="/about" element={<About />} />
         <Route
           path="/anecdotes/:id"
@@ -50,16 +52,35 @@ const Anecdote = ({ anecdotes }) => {
   );
 };
 
-const AnecdoteList = ({ anecdotes }) => (
-  <div>
-    <h2>Anecdotes</h2>
-    <ul>
-      {anecdotes.map((anecdote) => (
-        <li><Link to={`/anecdotes/${anecdote.id}`} key={anecdote.id}>{anecdote.content}</Link></li>
-      ))}
-    </ul>
-  </div>
-);
+const AnecdoteList = (props) => {
+  const location = useLocation();
+  const [notification, setNotification] = useState(location.state)
+  
+  console.log(location);
+  setTimeout(() => {
+    setNotification(false)
+  }, 3000);
+  return (
+    <div>
+      <h2>Anecdotes</h2>
+      {notification ? <Notification anecdote={notification} /> : ""}
+      <ul>
+        {props.anecdotes.map((anecdote) => (
+          <li>
+            <Link to={`/anecdotes/${anecdote.id}`} key={anecdote.id}>
+              {anecdote.content}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const Notification = ({ anecdote }) => (
+
+  <p>a new anecdote {anecdote} created!</p>
+)
 
 const About = () => (
   <div>
@@ -99,6 +120,8 @@ const CreateNew = (props) => {
   const [author, setAuthor] = useState("");
   const [info, setInfo] = useState("");
 
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     props.addNew({
@@ -107,6 +130,8 @@ const CreateNew = (props) => {
       info,
       votes: 0,
     });
+
+    navigate("/", { replace: false, state: content });
   };
 
   return (
@@ -185,7 +210,7 @@ const App = () => {
     <Router>
       <div>
         <h1>Software anecdotes</h1>
-        <Menu anecdotes={anecdotes} />
+        <Menu anecdotes={anecdotes} addNew={addNew} />
         <Footer />
       </div>
     </Router>
